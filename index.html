@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E8ECEC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C21" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Block 1">
+<title>Block 1 log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#E8ECEC; --surface:#F7F9F9; --ink:#17242B; --muted:#5A6A72; --line:#C9D2D4;
+  --accent:#2B62D9; --accent-ink:#FFFFFF; --hold:#D3DADC; --band:rgba(23,36,43,.04);
+  --s1:#2B62D9; --s2:#1F9A57; --s3:#C8327A; --s4:#C67E0E; --s5:#6B4FD8;
+  --display:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body:"Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#141C21; --surface:#1C262C; --ink:#E6EDEF; --muted:#93A3AA; --line:#2E3B42;
+    --accent:#5B8CFF; --accent-ink:#0E1418; --hold:#2A363D; --band:rgba(230,237,239,.035);
+    --s1:#6A97FF; --s2:#3CC27C; --s3:#E8609F; --s4:#F0A93A; --s5:#9C86FF;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 64px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.top h1{font:700 2.6rem/1 var(--display);margin:0;letter-spacing:-.01em}
+.top p{margin:4px 0 0;color:var(--muted)}
+.count{font:700 2.6rem/1 var(--display);text-align:right}
+.count small{display:block;font:500 .85rem/1.2 var(--body);color:var(--muted)}
+
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;border:0;background:transparent;padding:9px 0;border-radius:9px;font-weight:600;cursor:pointer;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+.days{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 14px;margin:0 -2px 14px;scrollbar-width:thin}
+.week{flex:none}
+.week .wk{display:block;font-size:.8rem;color:var(--muted);margin:0 0 4px 2px}
+.week .row{display:flex;gap:6px}
+.day{width:52px;padding:7px 0 6px;border:1px solid var(--line);background:var(--surface);border-radius:10px;cursor:pointer;text-align:center;position:relative}
+.day .dn{display:block;font-size:.75rem;color:var(--muted)}
+.day .dd{display:block;font:700 1.35rem/1 var(--display)}
+.day.logged::after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:var(--s2);border:2px solid var(--bg)}
+.day[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.day[aria-current="true"] .dn{color:var(--accent-ink);opacity:.85}
+.day.today:not([aria-current="true"]){border-color:var(--accent);border-width:2px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px}
+.day-head h2{font:700 1.9rem/1.05 var(--display);margin:0}
+.day-head p{margin:4px 0 0;color:var(--muted)}
+fieldset{border:0;padding:0;margin:22px 0 0}
+legend{font:700 1.25rem/1 var(--display);padding:0;margin-bottom:6px}
+.metric{padding:12px 0;border-top:1px solid var(--line)}
+.metric-head{display:flex;align-items:center;gap:10px}
+.metric-head label{font-weight:600}
+.metric-head .hint{font-size:.8rem;color:var(--muted)}
+.val{margin-left:auto;width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font:700 1.15rem/1 var(--display)}
+.holds{display:flex;align-items:center;gap:5px;margin:10px 0 8px}
+.hold{flex:1;min-width:0;height:34px;max-width:38px;border:0;cursor:pointer;background:var(--hold);color:var(--muted);font:600 .8rem/1 var(--body);
+  border-radius:48% 52% 44% 56% / 55% 45% 55% 45%;transition:background .15s, box-shadow .15s, color .15s}
+.hold:nth-child(3n){border-radius:56% 44% 52% 48% / 45% 55% 48% 52%}
+.hold:nth-child(4n){border-radius:44% 56% 58% 42% / 52% 48% 45% 55%}
+.hold.lit{background:color-mix(in srgb, var(--accent) 35%, var(--hold));color:var(--ink)}
+.hold.top{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent),0 0 14px color-mix(in srgb, var(--accent) 55%, transparent)}
+.note{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:.95rem}
+.metric.hours .note{margin-top:10px}
+
+.actions{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+.btn{border:0;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--s3);border:1px solid var(--s3)}
+.status{color:var(--muted);font-size:.9rem}
+
+.chart{margin-bottom:16px}
+.chart h2{font:700 1.4rem/1 var(--display);margin:0 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.key{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 11px 4px 8px;font-size:.85rem;cursor:pointer}
+.key .sw{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.key[aria-pressed="false"]{opacity:.45}
+.key[aria-pressed="false"] .sw{background:transparent;border:2px solid var(--c)}
+.plot{overflow-x:auto;margin:0 -16px;padding:0 16px}
+.plot svg{display:block}
+.plot .grid{stroke:var(--line);stroke-width:1}
+.plot .axis{fill:var(--muted);font:500 11px var(--body)}
+.plot .wk{fill:var(--muted);font:600 12px var(--body)}
+.plot .band{fill:var(--band)}
+.plot .today{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:3 4}
+.plot .line{fill:none;stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}
+.plot .pt{stroke:var(--surface);stroke-width:2}
+.plot .lbl{font:700 12px var(--display);text-anchor:middle}
+.plot .empty{fill:var(--muted);font:500 14px var(--body);text-anchor:middle}
+
+.data p{color:var(--muted);margin:0 0 14px;max-width:60ch}
+.data .actions{margin-top:0}
+.data h2{font:700 1.4rem/1 var(--display);margin:0 0 8px}
+.data section + section{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Block 1 log</h1>
+      <p id="range"></p>
+    </div>
+    <div class="count"><span id="logged">0</span>/<span id="total">30</span><small>sessions logged</small></div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="log">Log</button>
+    <button role="tab" aria-selected="false" data-view="charts">Charts</button>
+    <button role="tab" aria-selected="false" data-view="data">Data</button>
+  </div>
+
+  <main>
+    <section id="view-log">
+      <div class="days" id="days" aria-label="Training days"></div>
+      <form class="panel" id="entry" autocomplete="off">
+        <div class="day-head"><h2 id="dayTitle"></h2><p id="dayType"></p></div>
+        <fieldset id="pre"><legend>Before the session</legend></fieldset>
+        <fieldset id="post"><legend>After the session</legend></fieldset>
+        <div class="actions">
+          <button class="btn" type="submit">Save session</button>
+          <button class="btn ghost" type="button" id="clearDay">Clear this day</button>
+          <span class="status" id="status" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-charts" hidden>
+      <div class="panel" id="charts"></div>
+    </section>
+
+    <section id="view-data" class="panel data" hidden>
+      <section>
+        <h2>Back up your log</h2>
+        <p>Your log is saved in this browser on this device. Export a backup now and then, and import it to move your log to another phone or computer.</p>
+        <div class="actions">
+          <button class="btn" type="button" id="exportJson">Export backup</button>
+          <button class="btn ghost" type="button" id="importBtn">Import backup</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+      </section>
+      <section>
+        <h2>Spreadsheet</h2>
+        <p>Download every session as a CSV file to open in Excel or Google Sheets.</p>
+        <div class="actions"><button class="btn ghost" type="button" id="exportCsv">Download CSV</button></div>
+      </section>
+      <section>
+        <h2>Start over</h2>
+        <p>Delete every logged session from this device. Export a backup first if you want to keep it.</p>
+        <div class="actions">
+          <button class="btn danger" type="button" id="resetAll">Delete all sessions</button>
+          <span class="status" id="dataStatus" role="status"></span>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---------- Block setup ---------- */
+const START = new Date(2026, 9, 27);            // Tue Oct 27, 2026
+const BLOCK_DAYS = 42;                           // 6 weeks
+const TYPES = { 2:'Limit day', 3:'Project day (gym)', 4:'New climbs + endurance', 6:'Project day (board)', 0:'Technique lab + legs' };
+const STORE = 'block1-log-v1';
+
+const METRICS = [
+  { key:'sleep',      label:'Sleep',           phase:'pre',  kind:'hours', hint:'hours' },
+  { key:'finger',     label:'Finger',          phase:'pre' },
+  { key:'skin',       label:'Skin',            phase:'pre' },
+  { key:'energy',     label:'Energy',          phase:'pre' },
+  { key:'motivation', label:'Motivation',      phase:'pre' },
+  { key:'fatigue',    label:'Fatigue',         phase:'pre',  hint:'lower is better' },
+  { key:'soreness',   label:'Soreness',        phase:'pre',  hint:'lower is better' },
+  { key:'postEnergy', label:'Post energy',     phase:'post' },
+  { key:'length',     label:'Session length',  phase:'post', kind:'hours', hint:'hours' },
+  { key:'quality',    label:'Session quality', phase:'post' },
+  { key:'postFinger', label:'Finger',          phase:'post', csv:'Post finger' },
+  { key:'postSkin',   label:'Skin',            phase:'post', csv:'Post skin' },
+];
+const MET = Object.fromEntries(METRICS.map(m => [m.key, m]));
+
+const CHARTS = [
+  { title:'Before the session',      keys:['finger','skin','energy','motivation'], max:10 },
+  { title:'Fatigue and soreness',    keys:['fatigue','soreness'], max:10 },
+  { title:'After the session',       keys:['postEnergy','quality','postFinger','postSkin'], max:10 },
+  { title:'Sleep and session length (hours)', keys:['sleep','length'], max:'auto' },
+];
+const hidden = CHARTS.map(() => new Set());
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmt = v => Number.isInteger(v) ? String(v) : v.toFixed(v * 4 % 2 ? 2 : 1).replace(/0$/, '');
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const DAYS = [];
+for (let i = 0; i < BLOCK_DAYS; i++) {
+  const d = new Date(START); d.setDate(START.getDate() + i);
+  if (d.getDay() in TYPES) DAYS.push({ iso: iso(d), date: d, type: TYPES[d.getDay()], week: Math.floor(i / 7) + 1 });
+}
+const todayIso = iso(new Date());
+
+function loadLog() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } }
+function saveLog() { try { localStorage.setItem(STORE, JSON.stringify(log)); return true; } catch (e) { return false; } }
+let log = loadLog();
+const val = (dIso, k) => { const v = log[dIso]?.values?.[k]; return typeof v === 'number' && !isNaN(v) ? v : null; };
+const isLogged = dIso => !!log[dIso] && (Object.keys(log[dIso].values || {}).length || Object.keys(log[dIso].notes || {}).length);
+
+function pickStart() {
+  if (DAYS.some(d => d.iso === todayIso)) return todayIso;
+  const next = DAYS.find(d => d.iso > todayIso);
+  return next ? next.iso : DAYS[DAYS.length - 1].iso;
+}
+let current = pickStart();
+
+/* ---------- Header ---------- */
+function renderHeader() {
+  const a = DAYS[0].date, b = DAYS[DAYS.length - 1].date;
+  $('#range').textContent = `${MON[a.getMonth()]} ${a.getDate()} to ${MON[b.getMonth()]} ${b.getDate()}, ${DAYS.length} training days`;
+  $('#total').textContent = DAYS.length;
+  $('#logged').textContent = DAYS.filter(d => isLogged(d.iso)).length;
+}
+
+/* ---------- Day strip ---------- */
+function renderDays() {
+  const host = $('#days'); host.innerHTML = '';
+  for (let w = 1; w <= 6; w++) {
+    const g = document.createElement('div'); g.className = 'week';
+    g.innerHTML = `<span class="wk">Week ${w}</span><div class="row"></div>`;
+    DAYS.filter(d => d.week === w).forEach(d => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'day' + (isLogged(d.iso) ? ' logged' : '') + (d.iso === todayIso ? ' today' : '');
+      b.setAttribute('aria-current', d.iso === current);
+      b.setAttribute('aria-label', `${WD[d.date.getDay()]} ${MON[d.date.getMonth()]} ${d.date.getDate()}, ${d.type}${isLogged(d.iso) ? ', logged' : ''}`);
+      b.innerHTML = `<span class="dn">${WD[d.date.getDay()]}</span><span class="dd">${d.date.getDate()}</span>`;
+      b.onclick = () => { current = d.iso; renderDays(); fillForm(); };
+      g.querySelector('.row').append(b);
+    });
+    host.append(g);
+  }
+  const sel = host.querySelector('[aria-current="true"]');
+  if (sel) sel.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+
+/* ---------- Form ---------- */
+function buildForm() {
+  METRICS.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'metric' + (m.kind === 'hours' ? ' hours' : '');
+    const max = m.kind === 'hours' ? 24 : 10, step = m.kind === 'hours' ? 0.25 : 0.5;
+    el.innerHTML = `
+      <div class="metric-head">
+        <label for="v-${m.key}">${m.label}</label>${m.hint ? `<span class="hint">${m.hint}</span>` : ''}
+        <input class="val" id="v-${m.key}" type="number" inputmode="decimal" min="0" max="${max}" step="${step}" placeholder="–">
+      </div>
+      ${m.kind === 'hours' ? '' : `<div class="holds" role="group" aria-label="${m.label} score">${
+        Array.from({ length: 10 }, (_, i) => `<button type="button" class="hold" data-v="${i + 1}" aria-label="${m.label} ${i + 1}">${i + 1}</button>`).join('')
+      }</div>`}
+      <input class="note" id="n-${m.key}" type="text" placeholder="Notes" aria-label="${m.label} notes">`;
+    $('#' + m.phase).append(el);
+    const input = el.querySelector('.val');
+    input.addEventListener('input', () => paintHolds(m.key));
+    el.querySelectorAll('.hold').forEach(h => h.addEventListener('click', () => {
+      const v = Number(h.dataset.v);
+      input.value = Number(input.value) === v ? '' : v;
+      paintHolds(m.key);
+    }));
+  });
+}
+
+function paintHolds(key) {
+  const input = $('#v-' + key);
+  const v = input.value === '' ? null : Number(input.value);
+  const holds = input.closest('.metric').querySelectorAll('.hold');
+  holds.forEach(h => {
+    const n = Number(h.dataset.v);
+    const top = v != null && n === Math.ceil(v);
+    h.classList.toggle('lit', v != null && n < Math.ceil(v));
+    h.classList.toggle('top', top);
+    h.setAttribute('aria-pressed', top);
+  });
+}
+
+function fillForm() {
+  const d = DAYS.find(x => x.iso === current);
+  $('#dayTitle').textContent = `${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.date.getDay()]}, ${MON[d.date.getMonth()]} ${d.date.getDate()}`;
+  $('#dayType').textContent = `Week ${d.week}, ${d.type.charAt(0).toLowerCase() + d.type.slice(1)}`;
+  const e = log[current] || {};
+  METRICS.forEach(m => {
+    const v = e.values?.[m.key];
+    $('#v-' + m.key).value = v ?? '';
+    $('#n-' + m.key).value = e.notes?.[m.key] ?? '';
+    paintHolds(m.key);
+  });
+  $('#status').textContent = isLogged(current) ? 'Logged' : '';
+}
+
+$('#entry').addEventListener('submit', ev => {
+  ev.preventDefault();
+  const values = {}, notes = {};
+  METRICS.forEach(m => {
+    const raw = $('#v-' + m.key).value.trim();
+    if (raw !== '' && !isNaN(Number(raw))) values[m.key] = Number(raw);
+    const n = $('#n-' + m.key).value.trim();
+    if (n) notes[m.key] = n;
+  });
+  if (Object.keys(values).length || Object.keys(notes).length) log[current] = { values, notes, savedAt: new Date().toISOString() };
+  else delete log[current];
+  const ok = saveLog();
+  $('#status').textContent = ok ? 'Saved' : 'Not saved: this browser is blocking storage. Turn off private browsing and try again.';
+  renderHeader(); renderDays();
+});
+
+$('#clearDay').addEventListener('click', () => {
+  if (!isLogged(current)) { fillForm(); return; }
+  if (!confirm('Clear everything logged for this day?')) return;
+  delete log[current]; saveLog();
+  fillForm(); renderHeader(); renderDays();
+  $('#status').textContent = 'Cleared';
+});
+
+/* ---------- Charts ---------- */
+function svgChart(c, ci) {
+  const slot = 38, padL = 34, padR = 14, padT = 34, padB = 42, h = 250;
+  const w = padL + DAYS.length * slot + padR, ph = h - padT - padB;
+  const keys = c.keys.filter(k => !hidden[ci].has(k));
+  let max = c.max;
+  if (max === 'auto') {
+    let m = 0; keys.forEach(k => DAYS.forEach(d => { const v = val(d.iso, k); if (v != null && v > m) m = v; }));
+    max = Math.max(4, Math.ceil(m / 2) * 2);
+  }
+  const step = max <= 12 ? 2 : Math.ceil(max / 6);
+  const x = i => padL + i * slot + slot / 2;
+  const y = v => padT + ph - (Math.min(v, max) / max) * ph;
+  let s = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${c.title}, every training day">`;
+  for (let wk = 1; wk <= 6; wk++) {
+    const first = DAYS.findIndex(d => d.week === wk), n = DAYS.filter(d => d.week === wk).length;
+    const bx = padL + first * slot;
+    if (wk % 2 === 0) s += `<rect class="band" x="${bx}" y="${padT - 22}" width="${n * slot}" height="${ph + 22}"/>`;
+    s += `<text class="wk" x="${bx + 6}" y="${padT - 8}">Week ${wk}</text>`;
+  }
+  for (let v = 0; v <= max; v += step) {
+    s += `<line class="grid" x1="${padL}" x2="${w - padR}" y1="${y(v)}" y2="${y(v)}"/>`;
+    s += `<text class="axis" x="${padL - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  }
+  DAYS.forEach((d, i) => {
+    if (d.iso === todayIso) s += `<line class="today" x1="${x(i)}" x2="${x(i)}" y1="${padT}" y2="${padT + ph}"/>`;
+    s += `<text class="axis" x="${x(i)}" y="${h - padB + 17}" text-anchor="middle">${WD[d.date.getDay()].slice(0, 2)}</text>`;
+    s += `<text class="axis" x="${x(i)}" y="${h - padB + 31}" text-anchor="middle">${d.date.getMonth() + 1}/${d.date.getDate()}</text>`;
+  });
+  let any = false;
+  keys.forEach(k => {
+    const si = c.keys.indexOf(k) + 1, color = `var(--s${si})`;
+    const pts = DAYS.map((d, i) => [i, val(d.iso, k)]).filter(p => p[1] != null);
+    if (!pts.length) return;
+    any = true;
+    s += `<path class="line" style="stroke:${color}" d="${pts.map((p, j) => `${j ? 'L' : 'M'}${x(p[0])} ${y(p[1])}`).join(' ')}"/>`;
+    const below = si % 2 === 0;
+    pts.forEach(p => {
+      const py = y(p[1]);
+      const ly = below && py + 18 < padT + ph ? py + 18 : py - 9;
+      s += `<circle class="pt" cx="${x(p[0])}" cy="${py}" r="4.5" style="fill:${color}"/>`;
+      s += `<text class="lbl" x="${x(p[0])}" y="${ly}" style="fill:${color}">${fmt(p[1])}</text>`;
+    });
+  });
+  if (!any) s += `<text class="empty" x="${padL + 160}" y="${padT + ph / 2}">Log a session to see it here</text>`;
+  return s + '</svg>';
+}
+
+function renderCharts() {
+  const host = $('#charts'); host.innerHTML = '';
+  CHARTS.forEach((c, ci) => {
+    const sec = document.createElement('section'); sec.className = 'chart';
+    sec.innerHTML = `<h2>${c.title}</h2><div class="legend"></div><div class="plot"></div>`;
+    c.keys.forEach((k, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'key';
+      b.style.setProperty('--c', `var(--s${i + 1})`);
+      b.setAttribute('aria-pressed', !hidden[ci].has(k));
+      b.innerHTML = `<span class="sw"></span>${MET[k].label}`;
+      b.onclick = () => { hidden[ci].has(k) ? hidden[ci].delete(k) : hidden[ci].add(k); renderCharts(); };
+      sec.querySelector('.legend').append(b);
+    });
+    sec.querySelector('.plot').innerHTML = svgChart(c, ci);
+    host.append(sec);
+  });
+  const i = Math.max(0, DAYS.findIndex(d => d.iso >= todayIso));
+  host.querySelectorAll('.plot').forEach(p => { p.scrollLeft = Math.max(0, 34 + i * 38 - p.clientWidth / 2); });
+}
+
+/* ---------- Data ---------- */
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('#exportJson').onclick = () => {
+  download(`block1-log-${todayIso}.json`, JSON.stringify(log, null, 2), 'application/json');
+  $('#dataStatus').textContent = 'Backup exported';
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (typeof data !== 'object' || Array.isArray(data) || data === null) throw new Error();
+      if (!confirm('Replace the log on this device with this backup?')) return;
+      log = data; saveLog(); renderAll();
+      $('#dataStatus').textContent = 'Backup imported';
+    } catch (err) { $('#dataStatus').textContent = 'That file isn’t a Block 1 backup. Choose a .json file exported from this app.'; }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+};
+$('#exportCsv').onclick = () => {
+  const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const head = ['Date', 'Week', 'Day type', ...METRICS.flatMap(m => [m.csv || m.label, `${m.csv || m.label} notes`])];
+  const rows = DAYS.map(d => {
+    const e = log[d.iso] || {};
+    return [d.iso, d.week, d.type, ...METRICS.flatMap(m => [e.values?.[m.key] ?? '', e.notes?.[m.key] ?? ''])].map(q).join(',');
+  });
+  download(`block1-log-${todayIso}.csv`, [head.map(q).join(','), ...rows].join('\n'), 'text/csv');
+};
+$('#resetAll').onclick = () => {
+  if (!confirm('Delete every logged session on this device? This can’t be undone.')) return;
+  log = {}; saveLog(); renderAll();
+  $('#dataStatus').textContent = 'All sessions deleted';
+};
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['log', 'charts', 'data'].forEach(v => $('#view-' + v).hidden = v !== b.dataset.view);
+  if (b.dataset.view === 'charts') renderCharts();
+  if (b.dataset.view === 'log') renderDays();
+}));
+
+function renderAll() { renderHeader(); renderDays(); fillForm(); if (!$('#view-charts').hidden) renderCharts(); }
+buildForm();
+renderAll();
+</script>
+</body>
+</html>
